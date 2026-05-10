@@ -7,14 +7,6 @@ terraform {
       version = "~> 4.0"
     }
   }
-
-  cloud {
-    organization = "YOUR_ORG"
-
-    workspaces {
-      name = "cloudflare-domains"
-    }
-  }
 }
 
 provider "cloudflare" {
