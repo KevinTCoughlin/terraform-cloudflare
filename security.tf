@@ -1,17 +1,7 @@
 # Security.txt Configuration
 # Serves /.well-known/security.txt on all domains to fix "Security.txt not configured" warnings
 
-resource "cloudflare_workers_route" "security_txt" {
-  for_each = local.all_zones
-
-  zone_id     = each.value
-  pattern     = "*/${each.key}.well-known/security.txt"
-  script_name = cloudflare_worker_script.security_txt.name
-
-  depends_on = [cloudflare_worker_script.security_txt]
-}
-
-resource "cloudflare_worker_script" "security_txt" {
+resource "cloudflare_workers_script" "security_txt" {
   account_id = var.cloudflare_account_id
   name       = "security-txt-handler"
   content    = <<-EOT
@@ -36,6 +26,14 @@ Preferred-Languages: en`,
   }
 }
 EOT
+}
+
+resource "cloudflare_workers_route" "security_txt" {
+  for_each = local.all_zones
+
+  zone_id     = each.value
+  pattern     = "*/${each.key}/.well-known/security.txt"
+  script_name = cloudflare_workers_script.security_txt.name
 }
 
 # DMARC Configuration
