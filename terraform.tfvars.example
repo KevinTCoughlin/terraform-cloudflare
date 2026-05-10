@@ -1,0 +1,2 @@
+cloudflare_api_token = "" # Set via environment variable or .tfvars.local
+cloudflare_account_id = ""  # Get from Cloudflare dashboard
