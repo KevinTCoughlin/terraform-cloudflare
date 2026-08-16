@@ -1,9 +1,9 @@
 output "configured_zones" {
   description = "Cloudflare zones configured"
   value = {
-    for k, v in local.domains : k => {
+    for k, v in var.zones : k => {
       zone_id = v.zone_id
-      domain  = v.name
+      domain  = v.domain
     }
   }
 }
@@ -13,6 +13,6 @@ output "security_txt_worker" {
   value = {
     script_name = cloudflare_workers_script.security_txt.name
     script_id   = cloudflare_workers_script.security_txt.id
-    routes      = [for k, v in cloudflare_workers_route.security_txt : v.pattern]
+    routes      = sort([for route in cloudflare_workers_route.security_txt : route.pattern])
   }
 }

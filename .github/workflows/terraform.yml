@@ -1,48 +1,45 @@
-name: Terraform Validate
+name: Terraform checks
 
 on:
+  push:
+    branches:
+      - main
   pull_request:
-    paths:
-      - '**.tf'
-      - '.github/workflows/terraform.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: terraform-checks-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  terraform:
-    runs-on: ubuntu-latest
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
         with:
-          terraform_version: 1.6.0
+          terraform_version: 1.9.8
+          terraform_wrapper: false
 
-      - name: Terraform Format Check
+      - name: Check formatting
         run: terraform fmt -check -recursive
 
-      - name: Terraform Validate
-        run: terraform validate
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Initialize providers without a backend
+        run: terraform init -backend=false -input=false -lockfile=readonly
 
-      - name: Terraform Plan
-        run: terraform plan -no-color
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Validate configuration
+        run: terraform validate -no-color
 
-      - name: Comment Plan on PR
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const fs = require('fs');
-            const plan = require('child_process').execSync('terraform plan -no-color -json 2>&1 || true', { encoding: 'utf8' });
-            const output = `## Terraform Plan\n\`\`\`\n${plan.substring(0, 5000)}\n\`\`\``;
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: output
-            });
+      - name: Run mocked plan tests
+        run: terraform test -no-color
+
+      - name: Check deployment script syntax
+        run: bash -n deploy.sh

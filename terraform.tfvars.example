@@ -1,2 +1,17 @@
-cloudflare_api_token = "" # Set via environment variable or .tfvars.local
-cloudflare_account_id = ""  # Get from Cloudflare dashboard
+# Copy this file to terraform.tfvars and replace every placeholder.
+# Never commit terraform.tfvars or an API token.
+cloudflare_account_id  = "00000000000000000000000000000000"
+security_contact_email = "security@example.com"
+security_txt_expires   = "2027-12-31T23:59:59Z"
+
+zones = {
+  example = {
+    zone_id             = "00000000000000000000000000000000"
+    domain              = "example.com"
+    enable_security_txt = true
+
+    # Confirm SPF and DKIM alignment before moving from p=none to enforcement.
+    dmarc_content  = "v=DMARC1; p=none; rua=mailto:dmarc@example.com"
+    security_level = "high"
+  }
+}
