@@ -1,17 +1,9 @@
-# Bot Protection & AI Security Configuration
-# Fixes: Bot Fight Mode, Block AI bots, AI Labyrinth warnings
-
-# Enable Bot Fight Mode and high security level on applicable zones
 resource "cloudflare_zone_settings_override" "security_settings" {
-  for_each = {
-    juniperleaves               = local.domains.juniperleaves.zone_id
-    warzybrewing                = local.domains.warzybrewing.zone_id
-    cascadiacollections_workers = local.domains.cascadiacollections_workers.zone_id
-  }
+  for_each = local.security_level_zones
 
-  zone_id = each.value
+  zone_id = each.value.zone_id
 
   settings {
-    security_level = "high"
+    security_level = each.value.security_level
   }
 }
