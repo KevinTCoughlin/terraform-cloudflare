@@ -4,8 +4,18 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    groups:
+      github-actions:
+        patterns: ["*"]
+    cooldown:
+      default-days: 7
 
   - package-ecosystem: terraform
     directory: /
     schedule:
       interval: monthly
+    groups:
+      terraform:
+        patterns: ["*"]
+    cooldown:
+      default-days: 7
